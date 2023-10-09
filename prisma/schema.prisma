@@ -1,56 +1,85 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("PRISMA_MYSQL")
+  provider     = "mysql"
+  url          = env("PRISMA_MYSQL")
+  relationMode = "prisma"
 }
 
 model User {
-  id String @id @default(uuid())
-  name String?
-  email String? @unique
-  emailVerified DateTime?
-  image String?
+  id             String        @id @default(uuid())
+  name           String?
+  email          String?       @unique
+  emailVerified  DateTime?
+  image          String?
   hashedPassword String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  accounts Account[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  isDelete       Boolean       @default(false)
+  deleteAt       DateTime?
+  accounts       Account[]
+  seat           Seat[]
+  reservaiton    Reservation[]
 }
 
 model Account {
-  id String @id @default(uuid())
-  type String @db.Text
-  provider String
-  providerAccountId String
-  refresh_token String? @db.Text
-  access_token String? @db.Text
-  expires_at Int?
+  id                       String  @id @default(uuid())
+  type                     String  @db.Text
+  provider                 String
+  providerAccountId        String
+  refresh_token            String? @db.Text
+  access_token             String? @db.Text
+  expires_at               Int?
   refresh_token_expires_in Int?
-  token_type String?
-  scope String?
-  id_token String? @db.Text
-  session_state String?
-
-  userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // profileId String
-  // profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  token_type               String?
+  scope                    String?
+  id_token                 String? @db.Text
+  session_state            String?
+  userId                   String
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
-// model Profile {
-//   id String @id @default(uuid())
-//   name String
-//   email String
-//   image String
+model Concert {
+  id          String        @id @default(uuid())
+  name        String        @db.VarChar(255)
+  description String        @db.Text
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  isDelete    Boolean       @default(false)
+  deleteAt    DateTime?
+  reservation Reservation[]
+  seat        Seat[]
+}
 
-//   accounts Account[]
-// }
+model Seat {
+  id         Int      @id @default(autoincrement())
+  userId     String?
+  place      String   @db.VarChar(10)
+  number     Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isReserved Boolean  @default(false)
+  concertId  String
+  user       User?    @relation(fields: [userId], references: [id])
+  concert    Concert  @relation(fields: [concertId], references: [id])
+
+  @@index([userId])
+  @@index([concertId])
+}
+
+model Reservation {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  isDelete  Boolean   @default(false)
+  deleteAt  DateTime?
+  userId    String
+  concertId String
+  user      User      @relation(fields: [userId], references: [id])
+  concert   Concert   @relation(fields: [concertId], references: [id])
+}

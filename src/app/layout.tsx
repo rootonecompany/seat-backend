@@ -2,6 +2,8 @@ import ToasterContext from "@/context/ToasterContext";
 import "@/app/globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import NextAuthProvider from "@/providers/NextAuthProvider";
+import QueryProvider from "@/providers/QueryProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,8 +20,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ToasterContext />
-        {children}
+        <NextAuthProvider>
+          <ToasterContext />
+          <QueryProvider>{children}</QueryProvider>
+        </NextAuthProvider>
       </body>
     </html>
   );

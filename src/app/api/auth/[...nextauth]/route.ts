@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import KakaoProvider from "next-auth/providers/kakao";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "@/libs/prismadb";
+import prisma from "@/libs/db";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -34,8 +34,6 @@ export const authOptions: AuthOptions = {
           },
         });
 
-        console.log("nextauth authorize user", user);
-
         if (!user || !user?.hashedPassword) {
           throw new Error("Invalid credentials");
         }
@@ -56,6 +54,51 @@ export const authOptions: AuthOptions = {
   debug: process.env.NODE_ENV === "development",
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 1일
+    updateAge: 2 * 24 * 60 * 60, // 2일
+  },
+  callbacks: {
+    async jwt({ token, user, account, profile, trigger, session }) {
+      const dbuser = await prisma.user.findUnique({
+        where: {
+          email: token.email!,
+        },
+      });
+
+      if (!dbuser) {
+        throw new Error("Invalid SNS login");
+      }
+
+      // console.log("auth jwt token", token);
+      // console.log("auth jwt user", user);
+      // console.log("auth jwt account", account);
+      // console.log("auth jwt profile", profile);
+      // console.log("auth jwt trigger", trigger);
+      // console.log("auth jwt session", session);
+      if (account) {
+        token.accessToken = account.access_token;
+      }
+      return token;
+    },
+    // user session이 조회될 때 마다 실행
+    async session({ session, token, user }) {
+      // console.log("auth session session", session);
+      // console.log("auth session token", token);
+      // console.log("auth session user", user);
+      return session;
+    },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      } else if (new URL(url).origin === baseUrl) {
+        return `${baseUrl}`;
+      }
+      return baseUrl;
+    },
+  },
+  pages: {
+    signIn: "/login",
+    signOut: "/",
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

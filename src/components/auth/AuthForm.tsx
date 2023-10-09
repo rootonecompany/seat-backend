@@ -7,12 +7,14 @@ import AuthSocialButton from "./AuthSocialButton";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type Variant = "LOGIN" | "REGISTER";
 
 const AuthForm = () => {
   const [variant, setVariant] = useState<Variant>("LOGIN");
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const toggleVariant = useCallback(() => {
     if (variant === "LOGIN") {
@@ -36,11 +38,13 @@ const AuthForm = () => {
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     setIsLoading(true);
-    console.log(data);
     if (variant === "REGISTER") {
       // Axios Register
       axios
         .post("/api/register", data)
+        .then(() => {
+          toast.success("회원가입 성공");
+        })
         .catch(() => {
           toast.error("안돼노");
         })
@@ -59,6 +63,7 @@ const AuthForm = () => {
 
           if (callback?.ok && !callback?.error) {
             toast.success("로그인됨");
+            router.push("/");
           }
         })
         .finally(() => {
