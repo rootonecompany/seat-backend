@@ -5,7 +5,6 @@ import KakaoProvider from "next-auth/providers/kakao";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/libs/db";
-import { AxiosError } from "axios";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -13,12 +12,10 @@ export const authOptions: AuthOptions = {
     KakaoProvider({
       clientId: process.env.KAKAO_CLIENT_ID as string,
       clientSecret: process.env.KAKAO_CLIENT_SECRET as string,
-      allowDangerousEmailAccountLinking: true,
     }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "credentials",
@@ -54,59 +51,50 @@ export const authOptions: AuthOptions = {
       },
     }),
   ],
-  // debug: process.env.NODE_ENV === "development",
-  debug: true,
+  debug: process.env.NODE_ENV === "development",
   session: {
     strategy: "jwt",
     maxAge: 24 * 60 * 60, // 1일
     updateAge: 2 * 24 * 60 * 60, // 2일
   },
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
-      console.log("signIn user", user);
-      console.log("signIn account", account);
-      console.log("signIn profile", profile);
-      console.log("signIn email", email);
-      console.log("signIn credentials", credentials);
-      try {
-        if (account && user) {
-          const dbUser = await prisma.user.findUnique({
-            where: {
-              email: user.email as string,
-            },
-            include: {
-              accounts: true,
-            },
-          });
-          console.log("dbUser", dbUser);
-          return true;
-        }
-      } catch (error) {
-        console.error(error);
-        if (error instanceof AxiosError) {
-          return `signin?errorcode=${error.message}`;
-        }
+    async jwt({ token, user, account, profile, trigger, session }) {
+      const dbUser = await prisma.user.findUnique({
+        where: {
+          email: token.email!,
+        },
+      });
+
+      if (!dbUser) {
+        throw new Error("Invalid SNS login");
       }
-      return false;
-    },
-    async jwt({ token, user, account, profile }) {
-      console.log("jwt token", token);
-      console.log("jwt user", user);
-      console.log("jwt account", account);
-      console.log("jwt profile", profile);
+
+      console.log("dbUser", dbUser);
+
+      console.log("auth jwt token", token);
+      console.log("auth jwt user", user);
+      console.log("auth jwt account", account);
+      console.log("auth jwt profile", profile);
+      console.log("auth jwt trigger", trigger);
+      console.log("auth jwt session", session);
+      if (account) {
+        token.accessToken = account.access_token;
+      }
       return token;
     },
-    /**
-     * token = jwt() return
-     */
+    // user session이 조회될 때 마다 실행
     async session({ session, token, user }) {
-      console.log("session session", session);
-      console.log("session token", token);
-      console.log("session user", user);
+      console.log("auth session session", session);
+      console.log("auth session token", token);
+      console.log("auth session user", user);
       return session;
     },
     async redirect({ url, baseUrl }) {
-      console.log("redirect url", url);
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      } else if (new URL(url).origin === baseUrl) {
+        return `${baseUrl}`;
+      }
       console.log("redirect baseUrl", baseUrl);
       return baseUrl;
     },
