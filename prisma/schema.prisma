@@ -1,33 +1,17 @@
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
-}
-
 datasource db {
   provider     = "mysql"
   url          = env("PRISMA_MYSQL")
   relationMode = "prisma"
 }
 
-model User {
-  id             String        @id @default(uuid())
-  name           String?
-  email          String?       @unique
-  emailVerified  DateTime?
-  image          String?
-  hashedPassword String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  isDelete       Boolean       @default(false)
-  deleteAt       DateTime?
-  accounts       Account[]
-  seat           Seat[]
-  reservaiton    Reservation[]
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
 }
 
 model Account {
   id                       String  @id @default(uuid())
-  type                     String  @db.Text
+  type                     String  @db.VarChar(50)
   provider                 String
   providerAccountId        String
   refresh_token            String? @db.Text
@@ -43,6 +27,61 @@ model Account {
 
   @@unique([provider, providerAccountId])
 }
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id             String        @id @default(uuid())
+  name           String?
+  email          String?       @unique
+  emailVerified  DateTime?
+  image          String?
+  hashed_password String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  is_delete       Boolean       @default(false)
+  delete_at       DateTime?
+  accounts       Account[]
+  seats           Seat[]
+  reservaitons    Reservation[]
+  sessions Session[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+
+
+// model OAuthProfile {
+//   id String @id @default(uuid())
+//   iss String? @db.VarChar(255)
+//   azp String? @db.VarChar(255)
+//   aud String? @db.VarChar(255)
+//   sub String? @db.VarChar(255)
+//   email String? @db.VarChar(255)
+//   email_verified Boolean?
+//   at_hash String? @db.VarChar(255)
+//   name String? @db.VarChar(255)
+//   picture String? @db.Text
+//   given_name String? @db.VarChar(255)
+//   family_name String? @db.VarChar(255)
+//   locale String? @db.VarChar(20)
+//   iat Int?
+//   exp Int?
+//   userId String
+//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
 
 model Concert {
   id          String        @id @default(uuid())
