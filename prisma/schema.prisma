@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider     = "mysql"
+  url          = env("PRISMA_MYSQL")
+  relationMode = "prisma"
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+model Account {
+  id                       Int  @id @default(autoincrement())
+  // id                       String  @id @default(uuid())
+  type                     String  @db.VarChar(50)
+  provider                 String
+  providerAccountId        String
+  refresh_token            String? @db.Text
+  access_token             String? @db.Text
+  expires_at               Int?
+  refresh_token_expires_in Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String? @db.Text
+  session_state            String?
+
+  userId                   Int
+  // userId                   String
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Profile {
+  id Int  @id @default(autoincrement())
+  // id String  @id @default(uuid())
+  provider String
+  providerAccountId String
+  nickname String? @db.VarChar(100)
+  thumbnail_image String? @db.Text
+  locale String? @db.VarChar(10)
+  given_name String? @db.VarChar(100)
+  family_name String? @db.VarChar(100)
+  is_email_valid Boolean? @db.TinyInt
+  is_email_verified Boolean? @db.TinyInt
+  age_range String? @db.VarChar(10)
+  birthday String? @db.VarChar(10)
+  gender String? @db.VarChar(10)
+
+  userId Int
+  // userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  // id             String        @id @default(uuid())
+  id             Int        @id @default(autoincrement())
+  name           String?
+  email          String?       @unique
+  // image          String?
+  hashed_password String?
+
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  is_delete       Boolean       @default(false)
+  delete_at       DateTime?
+
+  accounts       Account[]
+  seats           Seat[]
+  reservaitons    Reservation[]
+  profiles Profile[]
+}
+
+model Concert {
+  id          String        @id @default(uuid())
+  name        String        @db.VarChar(255)
+  description String        @db.Text
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  isDelete    Boolean       @default(false)
+  deleteAt    DateTime?
+  reservation Reservation[]
+  seat        Seat[]
+}
+
+model Seat {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  // userId     String?
+  place      String   @db.VarChar(10)
+  number     Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isReserved Boolean  @default(false)
+  concertId  String
+  user       User?    @relation(fields: [userId], references: [id])
+  concert    Concert  @relation(fields: [concertId], references: [id])
+
+  @@index([userId])
+  @@index([concertId])
+}
+
+model Reservation {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  isDelete  Boolean   @default(false)
+  deleteAt  DateTime?
+  userId    Int
+  // userId    String
+  concertId String
+  user      User      @relation(fields: [userId], references: [id])
+  concert   Concert   @relation(fields: [concertId], references: [id])
+}

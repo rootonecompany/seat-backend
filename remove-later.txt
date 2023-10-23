@@ -1,0 +1,2 @@
+npm uninstall bcrypt
+npm uninstall @types/bcrypt
