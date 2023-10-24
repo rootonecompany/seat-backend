@@ -30,4 +30,16 @@ export class ProfileDto {
 
   @IsString()
   gender: string | null;
+
+  @IsString()
+  mobile: string | null;
+
+  @IsString()
+  mobile_e164: string | null;
+
+  @IsString()
+  birthYear: string | null;
+
+  @IsString()
+  name: string | null;
 }

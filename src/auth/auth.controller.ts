@@ -68,14 +68,19 @@ export class AuthController {
     // console.log('userInfo profile', profile);
 
     const isUser = await this.userService.findByEmail(user.email);
-    console.log('userInfo isUser', isUser);
+    // console.log('userInfo isUser', isUser);
 
     if (!isUser) {
       const newProfile = {
-        nickname: (profile?.properties?.nickname as string) || null,
+        nickname:
+          (profile?.properties?.nickname as string) ||
+          (profile?.response?.nickname as string).indexOf('*') !== -1
+            ? (profile?.response?.name as string)
+            : (profile?.response?.nickname as string) || null,
         thumbnail_image:
           (profile?.properties?.thumbnail_image as string) ||
           (user?.image as string) ||
+          (profile?.response?.profile_image as string) ||
           null,
         locale: (profile?.locale as string) || null,
         given_name: (profile?.given_name as string) || null,
@@ -88,9 +93,23 @@ export class AuthController {
           (profile?.kakao_account?.is_email_verified as boolean) ||
           (profile?.email_verified as boolean) ||
           null,
-        age_range: (profile?.kakao_account?.age_range as string) || null,
-        birthday: (profile?.kakao_account?.birthday as string) || null,
-        gender: (profile?.kakao_account?.gender as string) || null,
+        age_range:
+          (profile?.kakao_account?.age_range as string) ||
+          (profile?.response?.age as string) ||
+          null,
+        birthday:
+          (profile?.kakao_account?.birthday as string) ||
+          (profile?.response?.birthday as string) ||
+          null,
+        gender:
+          (profile?.kakao_account?.gender as string) ||
+          (profile?.response?.gender as string) === 'M'
+            ? 'male'
+            : 'female' || null,
+        mobile: (profile?.response?.mobile as string) || null,
+        mobile_e164: (profile?.response?.mobile_e164 as string) || null,
+        birthYear: (profile?.response?.birthyear as string) || null,
+        name: (profile?.response?.name as string) || null,
       };
       return await this.userService.createUser(user, account, newProfile);
     }
@@ -99,7 +118,7 @@ export class AuthController {
       user.email,
       account.provider,
     );
-    console.log('userInfo isUserWithProvider', isUserWithProvider);
+    // console.log('userInfo isUserWithProvider', isUserWithProvider);
 
     if (
       isUserWithProvider.id &&
@@ -107,20 +126,44 @@ export class AuthController {
       isUserWithProvider.accounts.length === 0
     ) {
       const newProfile = {
-        nickname: (profile?.properties?.nickname as string) || null,
+        nickname:
+          (profile?.properties?.nickname as string) ||
+          (profile?.response?.nickname as string).indexOf('*') !== -1
+            ? (profile?.response?.name as string)
+            : (profile?.response?.nickname as string) || null,
         thumbnail_image:
-          (profile?.properties?.thumbnail_image as string) || null,
-        email_verified: (profile?.email_verified as boolean) || null,
+          (profile?.properties?.thumbnail_image as string) ||
+          (user?.image as string) ||
+          (profile?.response?.profile_image as string) ||
+          null,
         locale: (profile?.locale as string) || null,
         given_name: (profile?.given_name as string) || null,
         family_name: (profile?.family_name as string) || null,
         is_email_valid:
-          (profile?.kakao_account?.is_email_valid as boolean) || null,
+          (profile?.kakao_account?.is_email_valid as boolean) ||
+          (profile?.email_verified as boolean) ||
+          null,
         is_email_verified:
-          (profile?.kakao_account?.is_email_verified as boolean) || null,
-        age_range: (profile?.kakao_account?.age_range as string) || null,
-        birthday: (profile?.kakao_account?.birthday as string) || null,
-        gender: (profile?.kakao_account?.gender as string) || null,
+          (profile?.kakao_account?.is_email_verified as boolean) ||
+          (profile?.email_verified as boolean) ||
+          null,
+        age_range:
+          (profile?.kakao_account?.age_range as string) ||
+          (profile?.response?.age as string) ||
+          null,
+        birthday:
+          (profile?.kakao_account?.birthday as string) ||
+          (profile?.response?.birthday as string) ||
+          null,
+        gender:
+          (profile?.kakao_account?.gender as string) ||
+          (profile?.response?.gender as string) === 'M'
+            ? 'male'
+            : 'female' || null,
+        mobile: (profile?.response?.mobile as string) || null,
+        mobile_e164: (profile?.response?.mobile_e164 as string) || null,
+        birthYear: (profile?.response?.birthyear as string) || null,
+        name: (profile?.response?.name as string) || null,
       };
       return await this.userService.createUserAnotherProfileAndAccount(
         isUserWithProvider.id,
@@ -129,6 +172,6 @@ export class AuthController {
       );
     }
 
-    return await this.userService.userInfo(user, account);
+    return await this.userService.userInfo(user, account, profile);
   }
 }

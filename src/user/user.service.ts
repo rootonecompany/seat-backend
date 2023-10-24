@@ -46,7 +46,7 @@ export class UserService {
   ) {
     const user = await this.prisma.user.create({
       data: {
-        name: userDto.name,
+        name: userDto.name.indexOf('*') !== -1 ? profileDto.name : userDto.name,
         email: userDto.email,
         // image: userDto.image,
         profiles: {
@@ -63,6 +63,9 @@ export class UserService {
             gender: profileDto.gender,
             provider: accountDto.provider,
             providerAccountId: accountDto.providerAccountId,
+            mobile: profileDto.mobile,
+            mobile_e164: profileDto.mobile_e164,
+            birthyear: profileDto.birthYear,
           },
         },
         accounts: {
@@ -142,6 +145,9 @@ export class UserService {
         provider: accountDto.provider,
         providerAccountId: accountDto.providerAccountId,
         userId: id,
+        mobile: profileDto.mobile,
+        mobile_e164: profileDto.mobile_e164,
+        birthyear: profileDto.birthYear,
       },
     });
 
@@ -183,8 +189,16 @@ export class UserService {
     };
   }
 
-  async userInfo(userDto: UserDto, accountDto: AccountDto) {
-    const user = await this.prisma.user.findFirst({
+  async userInfo(
+    userDto: UserDto,
+    accountDto: AccountDto,
+    profileDto: ProfileDto,
+  ) {
+    console.log('userInfo userDto', userDto);
+    console.log('userInfo accountDto', accountDto);
+    console.log('userInfo profileDto', profileDto);
+
+    const isUser = await this.prisma.user.findUnique({
       where: {
         email: userDto.email,
       },
@@ -201,6 +215,68 @@ export class UserService {
         },
       },
     });
+    console.log('userInfo isUser', isUser);
+
+    let user;
+    if (isUser) {
+      user = await this.prisma.user.update({
+        where: {
+          id: isUser.id,
+        },
+        data: {
+          name:
+            userDto.name.indexOf('*') !== -1 ? profileDto.name : userDto.name,
+          profiles: {
+            update: {
+              where: {
+                id: isUser.profiles[0].id,
+                provider: isUser.profiles[0].provider,
+              },
+              data: {
+                thumbnail_image: profileDto.thumbnail_image,
+                age_range: profileDto.age_range,
+                birthday: profileDto.birthday,
+                gender: profileDto.gender,
+                birthyear: profileDto.birthYear,
+                mobile: profileDto.mobile,
+                mobile_e164: profileDto.mobile_e164,
+                nickname: profileDto.nickname,
+              },
+            },
+          },
+          accounts: {
+            update: {
+              where: {
+                id: isUser.accounts[0].id,
+                provider: isUser.accounts[0].provider,
+              },
+              data: {
+                type: accountDto.type,
+                provider: accountDto.provider,
+                providerAccountId: accountDto.providerAccountId,
+                refresh_token: accountDto.refresh_token,
+                access_token: accountDto.access_token,
+                expires_at: accountDto.expires_at,
+                refresh_token_expires_in: accountDto.refresh_token_expires_in,
+                token_type: accountDto.token_type,
+                scope: accountDto.scope,
+                id_token: accountDto.id_token,
+              },
+            },
+          },
+        },
+        include: {
+          accounts: true,
+          profiles: true,
+        },
+      });
+    } else {
+      user = null;
+    }
+
+    if (!user) {
+      return null;
+    }
 
     const payload = {
       user,

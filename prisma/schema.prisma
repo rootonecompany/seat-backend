@@ -25,7 +25,6 @@ model Account {
   token_type               String?
   scope                    String?
   id_token                 String? @db.Text
-  session_state            String?
 
   userId                   Int
   // userId                   String
@@ -47,8 +46,11 @@ model Profile {
   is_email_valid Boolean? @db.TinyInt
   is_email_verified Boolean? @db.TinyInt
   age_range String? @db.VarChar(10)
+  birthyear String? @db.VarChar(4)
   birthday String? @db.VarChar(10)
   gender String? @db.VarChar(10)
+  mobile String? @db.VarChar(20)
+  mobile_e164 String? @db.VarChar(20)
 
   userId Int
   // userId String
