@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "mysql"
+  url = env("PRISMA_MYSQL")
+  relationMode = "prisma"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+enum MemberRole {
+  ADMIN
+  COMPANY
+  USER
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  role MemberRole @default(USER)
+  userId String @unique
+  name String
+  hashed_password String
+  phone String @db.VarChar(20)
+  phone_e164 String? @db.VarChar(20)
+  is_phone_verified Boolean? @db.TinyInt
+  refreshToken String? @db.Text
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_delete Boolean @default(false)
+  delete_at DateTime?
+
+  seats Seat[]
+  reservaitons Reservation[]
+}
+
+model Concert {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(255)
+  description String @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDelete Boolean @default(false)
+  deleteAt  DateTime?
+  reservations Reservation[]
+  seats Seat[]
+  places Place[]
+}
+
+model Place {
+  id Int @id @default(autoincrement())
+  city String
+  location String
+  concertId Int
+  concert Concert @relation(fields: [concertId], references: [id])
+
+  @@index([concertId])
+}
+
+model Seat {
+  id Int @id @default(autoincrement())
+  userId Int?
+  place String @db.VarChar(10)
+  number Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isReserved Boolean @default(false)
+  concertId Int
+  user User? @relation(fields: [userId], references: [id])
+  concert Concert @relation(fields: [concertId], references: [id])
+
+  @@index([userId])
+  @@index([concertId])
+}
+
+model Reservation {
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDelete Boolean @default(false)
+  deleteAt DateTime?
+  userId Int
+  concertId Int
+  user User @relation(fields: [userId], references: [id])
+  concert Concert @relation(fields: [concertId], references: [id])
+
+  @@index([userId])
+  @@index([concertId])
+}
