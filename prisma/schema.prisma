@@ -34,24 +34,63 @@ model User {
   is_delete Boolean @default(false)
   delete_at DateTime?
 
-  seats Seat[]
+  seatRows SeatRow[]
   reservaitons Reservation[]
 }
 
 model Concert {
   id Int @id @default(autoincrement())
-  name String @db.VarChar(255)
-  description String @db.Text
+  title String @db.VarChar(255)
+  subtitle String @db.Text
+  genre String
+  rating Int
+  runningTime Int
+  startDate DateTime
+  endDate DateTime
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDelete Boolean @default(false)
   deleteAt  DateTime?
+
+  concertFile ConcertFile[]
   reservations Reservation[]
-  seats Seat[]
-  places Place[]
+  seatRows SeatRow[]
+  venues Venue[]
+  startAts StartAt[]
+  seatRanks SeatRank[]
+  floors Floor[]
+  sections Section[]
+  seatColumns SeatColumn[]
 }
 
-model Place {
+model ConcertFile {
+  id Int @id @default(autoincrement())
+  type String
+  fieldName String
+  originalName String
+  encoding String
+  mimeType String
+  destination String
+  fileName String
+  path String
+  size Int
+  concertId Int
+  concert Concert @relation(fields: [concertId], references: [id])
+
+  @@index([concertId])
+}
+
+model StartAt {
+  id Int @id @default(autoincrement())
+  startAt String
+  concertId Int
+  concert Concert @relation(fields: [concertId], references: [id])
+
+  @@index([concertId])
+}
+
+model Venue {
   id Int @id @default(autoincrement())
   city String
   location String
@@ -61,20 +100,93 @@ model Place {
   @@index([concertId])
 }
 
-model Seat {
+model SeatRank {
   id Int @id @default(autoincrement())
-  userId Int?
-  place String @db.VarChar(10)
-  number Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isReserved Boolean @default(false)
+  seatRank String
+  count Int
+  price Int
   concertId Int
-  user User? @relation(fields: [userId], references: [id])
   concert Concert @relation(fields: [concertId], references: [id])
 
-  @@index([userId])
+  seatRow SeatRow[]
+
   @@index([concertId])
+}
+
+model Floor {
+  id Int @id @default(autoincrement())
+  floor Int
+  concertId Int
+  concert Concert @relation(fields: [concertId], references: [id])
+
+  @@index([concertId])
+
+  sections Section[]
+  seatColumns SeatColumn[]
+  seatRows SeatRow[]
+}
+
+model Section {
+  id Int @id @default(autoincrement())
+  section String
+  floorId Int?
+  floor Floor? @relation(fields: [floorId], references: [id])
+  concertId Int
+  concert Concert @relation(fields: [concertId], references: [id])
+
+  @@index([floorId])
+  @@index([concertId])
+
+  seatColumns SeatColumn[]
+  seatRows SeatRow[]
+}
+
+model SeatColumn {
+  id Int @id @default(autoincrement())
+  column Int
+  count Int
+  seatRank String @db.VarChar(10)
+  sectionName String @db.VarChar(10)
+  floorId Int?
+  floor Floor? @relation(fields: [floorId], references: [id])
+  sectionId Int?
+  section Section? @relation(fields: [sectionId], references: [id])
+  concertId Int
+  concert Concert @relation(fields: [concertId], references: [id])
+
+  @@index([sectionId])
+  @@index([floorId])
+  @@index([concertId])
+
+  seatRows SeatRow[]
+}
+
+model SeatRow {
+  id Int @id @default(autoincrement())
+  seatNumber Int
+  userId Int?
+  user User? @relation(fields: [userId], references: [id])
+  isReserved Boolean @default(false)
+  floorId Int?
+  floor Floor? @relation(fields: [floorId], references: [id])
+  sectionId Int?
+  sectionName String?
+  section Section? @relation(fields: [sectionId], references: [id])
+  seatColumnId Int?
+  seatColumn SeatColumn? @relation(fields: [seatColumnId], references: [id])
+  concertId Int
+  concert Concert @relation(fields: [concertId], references: [id])
+  seatRankId Int?
+  seatRankName String?
+  seatRank SeatRank? @relation(fields: [seatRankId], references: [id])
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([floorId])
+  @@index([sectionId])
+  @@index([seatColumnId])
+  @@index([concertId])
+  @@index([seatRankId])
 }
 
 model Reservation {
