@@ -68,7 +68,7 @@ export class VendorService {
         runningTime: Number(performanceRegisterDto.runningTime),
         startDate: new Date(performanceRegisterDto.startDate),
         endDate: new Date(performanceRegisterDto.endDate),
-        concertFile: {
+        concertFiles: {
           createMany: {
             data: [
               {
@@ -151,7 +151,7 @@ export class VendorService {
       },
       include: {
         startAts: true,
-        concertFile: true,
+        concertFiles: true,
         venues: true,
         seatRanks: true,
         floors: true,

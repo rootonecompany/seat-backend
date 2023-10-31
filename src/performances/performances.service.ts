@@ -8,7 +8,7 @@ export class PerformancesService {
   async findAllPerformances() {
     return await this.prisma.concert.findMany({
       include: {
-        concertFile: {
+        concertFiles: {
           where: {
             type: 'main',
           },
@@ -37,7 +37,7 @@ export class PerformancesService {
         genre,
       },
       include: {
-        concertFile: {
+        concertFiles: {
           where: {
             type: 'main',
           },

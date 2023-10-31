@@ -50,10 +50,10 @@ model Concert {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  isDelete Boolean @default(false)
-  deleteAt  DateTime?
+  isDeleted Boolean @default(false)
+  deletedAt  DateTime?
 
-  concertFile ConcertFile[]
+  concertFiles ConcertFile[]
   reservations Reservation[]
   seatRows SeatRow[]
   venues Venue[]
@@ -108,7 +108,7 @@ model SeatRank {
   concertId Int
   concert Concert @relation(fields: [concertId], references: [id])
 
-  seatRow SeatRow[]
+  seatRows SeatRow[]
 
   @@index([concertId])
 }
@@ -193,8 +193,8 @@ model Reservation {
   id Int @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  isDelete Boolean @default(false)
-  deleteAt DateTime?
+  isDeleted Boolean @default(false)
+  deletedAt DateTime?
   userId Int
   concertId Int
   user User @relation(fields: [userId], references: [id])
@@ -202,4 +202,16 @@ model Reservation {
 
   @@index([userId])
   @@index([concertId])
+}
+
+model PerformanceRank {
+  id Int @id @default(autoincrement())
+  genre String
+  type String
+  imageUrl String
+  title String
+  startDate String
+  endDate String
+  distributor String
+  createdAt DateTime @default(now())
 }
