@@ -8,6 +8,8 @@ import { PerformancesModule } from './performances/performances.module';
 import { TaskModule } from './task/task.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
+import { BatchesModule } from './batches/batches.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -20,11 +22,13 @@ import configuration from './config/configuration';
           : '.env.development',
       load: [configuration],
     }),
+    ScheduleModule.forRoot(),
     AuthenticationModule,
     UserModule,
     VendorModule,
     PerformancesModule,
     TaskModule,
+    BatchesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
