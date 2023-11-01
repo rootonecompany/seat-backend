@@ -1,13 +1,14 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/utils/prisma.service';
-import { RegisterDto } from './dto/register.dto';
+import { RegisterDto } from './dto/user-register.dto';
 import { hash } from 'bcrypt';
+import { ResponseRegisterDto } from './types/user-register.dto';
 
 @Injectable()
 export class AuthenticationService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async register(registerDto: RegisterDto) {
+  async register(registerDto: RegisterDto): Promise<ResponseRegisterDto> {
     const user = await this.prisma.user.findUnique({
       where: {
         userId: registerDto.userId,
@@ -21,15 +22,24 @@ export class AuthenticationService {
     const newUser = await this.prisma.user.create({
       data: {
         userId: registerDto.userId,
-        hashed_password: await hash(registerDto.password, 10),
+        hashedPassword: await hash(registerDto.password, 10),
         name: registerDto.name,
         phone: registerDto.phone,
-        is_phone_verified: registerDto.is_phone_verified,
+        isPhoneVerified: registerDto.isPhoneVerified,
+      },
+      select: {
+        id: true,
+        role: true,
+        userId: true,
+        name: true,
+        phone: true,
+        phone_e164: true,
+        isPhoneVerified: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hashed_password, ...rest } = newUser;
-    return rest;
+    return newUser;
   }
 }

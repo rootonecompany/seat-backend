@@ -60,7 +60,7 @@ export class PerformanceRegisterDto {
 
   @IsNotEmpty()
   @IsString()
-  @ApiProperty({ description: '연령', required: true, example: '19세 이상' })
+  @ApiProperty({ description: '연령', required: true, example: '19' })
   rating!: string;
 
   @IsNotEmpty()

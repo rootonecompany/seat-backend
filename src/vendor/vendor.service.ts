@@ -1,6 +1,7 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from 'src/utils/prisma.service';
-import { PerformanceRegisterDto } from './dto/register.dto';
+import { PerformanceRegisterDto } from './dto/performance-register.dto';
+import { ResponsePerformanceRegisterDto } from './types/performance-register.dto';
 
 @Injectable()
 export class VendorService {
@@ -12,7 +13,7 @@ export class VendorService {
       vendor_detail_image: Express.Multer.File[];
     },
     performanceRegisterDto: PerformanceRegisterDto,
-  ) {
+  ): Promise<ResponsePerformanceRegisterDto> {
     const startAts = performanceRegisterDto.startAts.map((startAt) => {
       return {
         startAt: startAt.startAt,
@@ -63,7 +64,7 @@ export class VendorService {
       data: {
         title: performanceRegisterDto.title,
         subtitle: performanceRegisterDto.subtitle,
-        genre: '콘서트',
+        genre: 'concert',
         rating: Number(performanceRegisterDto.rating),
         runningTime: Number(performanceRegisterDto.runningTime),
         startDate: new Date(performanceRegisterDto.startDate),
@@ -150,14 +151,86 @@ export class VendorService {
         id: 1,
       },
       include: {
-        startAts: true,
-        concertFiles: true,
-        venues: true,
-        seatRanks: true,
-        floors: true,
-        sections: true,
-        seatColumns: true,
-        seatRows: true,
+        startAts: {
+          select: {
+            startAt: true,
+          },
+        },
+        concertFiles: {
+          select: {
+            path: true,
+            type: true,
+          },
+        },
+        venues: {
+          select: {
+            city: true,
+            location: true,
+          },
+        },
+        seatRanks: {
+          select: {
+            seatRank: true,
+            count: true,
+            price: true,
+          },
+        },
+        floors: {
+          select: {
+            floor: true,
+          },
+        },
+        sections: {
+          select: {
+            section: true,
+            floor: {
+              select: {
+                floor: true,
+              },
+            },
+          },
+        },
+        seatColumns: {
+          select: {
+            column: true,
+            count: true,
+            seatRank: true,
+            floor: {
+              select: {
+                floor: true,
+              },
+            },
+            section: {
+              select: {
+                section: true,
+              },
+            },
+          },
+        },
+        seatRows: {
+          select: {
+            seatNumber: true,
+            userId: true,
+            isReserved: true,
+            floor: {
+              select: {
+                floor: true,
+              },
+            },
+            section: {
+              select: {
+                section: true,
+              },
+            },
+            seatColumn: {
+              select: {
+                column: true,
+                count: true,
+                seatRank: true,
+              },
+            },
+          },
+        },
       },
     });
 

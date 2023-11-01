@@ -23,16 +23,16 @@ model User {
   role MemberRole @default(USER)
   userId String @unique
   name String
-  hashed_password String
+  hashedPassword String
   phone String @db.VarChar(20)
   phone_e164 String? @db.VarChar(20)
-  is_phone_verified Boolean? @db.TinyInt
+  isPhoneVerified Boolean? @db.TinyInt
   refreshToken String? @db.Text
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  is_delete Boolean @default(false)
-  delete_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDelete Boolean @default(false)
+  deletedAt DateTime?
 
   seatRows SeatRow[]
   reservaitons Reservation[]

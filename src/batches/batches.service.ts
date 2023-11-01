@@ -823,11 +823,11 @@ export class BatchesService {
     });
   }
 
-  @Timeout(1000)
-  async createPerformanceRank() {
-    await this.interParkScraping();
-    await this.yes24Scraping();
-    await this.ticketLinkScraping();
-    await this.melonScraping();
-  }
+  // @Timeout(1000)
+  // async createPerformanceRank() {
+  //   await this.interParkScraping();
+  //   await this.yes24Scraping();
+  //   await this.ticketLinkScraping();
+  //   await this.melonScraping();
+  // }
 }

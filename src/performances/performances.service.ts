@@ -1,13 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/utils/prisma.service';
+import { ResponsePerformanceDto } from './types/performance.dto';
 
 @Injectable()
 export class PerformancesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAllPerformances() {
+  async findAllPerformances(): Promise<ResponsePerformanceDto[]> {
     return await this.prisma.concert.findMany({
-      include: {
+      select: {
+        id: true,
+        title: true,
+        subtitle: true,
+        genre: true,
+        startDate: true,
+        endDate: true,
         concertFiles: {
           where: {
             type: 'main',
@@ -22,21 +29,32 @@ export class PerformancesService {
             location: true,
           },
         },
-        startAts: {
+        seatRows: {
+          where: {
+            isReserved: false,
+          },
           select: {
-            startAt: true,
+            isReserved: true,
           },
         },
       },
     });
   }
 
-  async findAllPerformancesByGenre(genre: string) {
+  async findAllPerformancesByGenre(
+    genre: string,
+  ): Promise<ResponsePerformanceDto[]> {
     return await this.prisma.concert.findMany({
       where: {
         genre,
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        subtitle: true,
+        genre: true,
+        startDate: true,
+        endDate: true,
         concertFiles: {
           where: {
             type: 'main',
@@ -51,9 +69,12 @@ export class PerformancesService {
             location: true,
           },
         },
-        startAts: {
+        seatRows: {
+          where: {
+            isReserved: false,
+          },
           select: {
-            startAt: true,
+            isReserved: true,
           },
         },
       },

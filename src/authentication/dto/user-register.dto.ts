@@ -41,5 +41,5 @@ export class RegisterDto {
     required: true,
     example: true,
   })
-  is_phone_verified!: boolean;
+  isPhoneVerified!: boolean;
 }

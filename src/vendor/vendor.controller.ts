@@ -8,20 +8,35 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { VendorService } from './vendor.service';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { Request, Response } from 'express';
-import { PerformanceRegisterDto } from './dto/register.dto';
+import { PerformanceRegisterDto } from './dto/performance-register.dto';
+import { ResponsePerformanceRegisterDto } from './types/performance-register.dto';
 
 @Controller('vendor')
-@ApiTags('업체 API')
+@ApiTags('vendor')
 export class VendorController {
   constructor(private readonly vendorService: VendorService) {}
 
   @Post('register')
-  @ApiOperation({ summary: ' 등록' })
-  @ApiCreatedResponse({ description: '등록 완료' })
+  @ApiOperation({ summary: ' 티켓 등록' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: '티켓 등록',
+    type: PerformanceRegisterDto,
+  })
+  @ApiCreatedResponse({
+    description: '티켓 등록 완료',
+    type: ResponsePerformanceRegisterDto,
+  })
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'vendor_main_image', maxCount: 1 },
