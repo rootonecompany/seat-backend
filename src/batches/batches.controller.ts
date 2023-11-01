@@ -1,27 +1,33 @@
-import { Controller, Logger, Post } from '@nestjs/common';
+import { Controller, Get, Logger, Post } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
+import { BatchesService } from './batches.service';
 
 @Controller('batches')
 export class BatchesController {
   private readonly logger = new Logger(BatchesController.name);
 
-  constructor(private scheduler: SchedulerRegistry) {}
+  constructor(
+    private schedulerRegistry: SchedulerRegistry,
+    private readonly bathesService: BatchesService,
+  ) {}
 
-  @Post('start')
-  start() {
-    const job = this.scheduler.getCronJob('cronSample');
+  // @Get()
+  // test() {
+  //   this.bathesService.test();
+  // }
 
-    job.start();
-
-    this.logger.fatal(`cron start! - ${job.lastDate()}`);
+  @Post('add')
+  addJob() {
+    this.bathesService.addJob('testJob', '*/5 * * * *');
   }
 
   @Post('stop')
-  stop() {
-    const job = this.scheduler.getCronJob('cronSample');
+  stopJob() {
+    this.bathesService.stopJob('testJob');
+  }
 
-    job.stop();
-
-    this.logger.fatal(`cron stop! - ${job.lastDate()}`);
+  @Get('jobs')
+  jobs() {
+    this.bathesService.getJobs();
   }
 }

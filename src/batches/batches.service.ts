@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SchedulerRegistry } from '@nestjs/schedule';
-import { Browser, executablePath } from 'puppeteer';
+import { CronJob } from 'cron';
+import { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import plugin from 'puppeteer-extra-plugin-stealth';
 import { PrismaService } from 'src/utils/prisma.service';
-import { CronJob } from 'cron';
 
 @Injectable()
 export class BatchesService {
@@ -15,52 +15,84 @@ export class BatchesService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     private schedulerRegistry: SchedulerRegistry,
-  ) {
-    // this.addCronJob();
-  }
+  ) {}
+
+  // async test() {
+  //   puppeteer.use(plugin());
+
+  //   const browser: Browser = await puppeteer.launch({
+  //     headless: 'new',
+  //     protocolTimeout: 4 * 60 * 1000,
+  //     ignoreHTTPSErrors: true,
+  //     dumpio: true,
+  //     args: ['--enable-gpu'],
+  //   });
+
+  //   const page = await browser.newPage();
+
+  //   await page.goto('https://bot.sannysoft.com', {
+  //     waitUntil: ['domcontentloaded'],
+  //     timeout: 30 * 1000,
+  //   });
+
+  //   await page.screenshot({ path: 'bot.jpg' });
+  //   await browser.close();
+  // }
 
   async interParkScraping() {
+    this.logger.debug('interParkScraping now');
     puppeteer.use(plugin());
 
     const browser: Browser = await puppeteer.launch({
-      headless: 'new',
-      executablePath: executablePath(),
+      headless: true,
+      protocolTimeout: 4 * 60 * 1000,
+      ignoreHTTPSErrors: true,
+      dumpio: true,
+      args: ['--enable-gpu'],
     });
 
     const musicalPage = await browser.newPage();
-    musicalPage.setViewport({
+
+    await musicalPage.setViewport({
       width: 1920,
       height: 1080,
+      deviceScaleFactor: 1,
     });
-    musicalPage.setDefaultNavigationTimeout(2 * 60 * 1000);
 
     const concertPage = await browser.newPage();
-    concertPage.setViewport({
+
+    await concertPage.setViewport({
       width: 1920,
       height: 1080,
+      deviceScaleFactor: 1,
     });
-    concertPage.setDefaultNavigationTimeout(2 * 60 * 1000);
 
     await Promise.all([
       musicalPage.goto(
         this.configService.get<string>('INTERPARK_MUSICAL_URL'),
         {
-          waitUntil: ['networkidle0'],
+          waitUntil: ['domcontentloaded'],
+          timeout: 30 * 1000,
         },
       ),
       concertPage.goto(
         this.configService.get<string>('INTERPARK_CONCERT_URL'),
         {
-          waitUntil: ['networkidle0'],
+          waitUntil: ['domcontentloaded'],
+          timeout: 30 * 1000,
         },
       ),
     ]);
 
     await this.delay(5000);
 
-    musicalPage.click('menu.stats-info_subWrap__ji32u button[name="주간"]');
+    musicalPage.click(
+      '.stats-info_statsInfoWrap__zBlSG > .stats-info_statsInfoContents__QX68Z .stats-info_subWrap__ji32u button:nth-child(3)',
+    );
 
-    concertPage.click('menu.stats-info_subWrap__ji32u button[name="주간"]');
+    concertPage.click(
+      '.stats-info_statsInfoWrap__zBlSG > .stats-info_statsInfoContents__QX68Z .stats-info_subWrap__ji32u button:nth-child(3)',
+    );
 
     await this.delay(5000);
 
@@ -82,15 +114,13 @@ export class BatchesService {
             '.ranking-vertical-item_dateWrap__uZGMU',
           ).textContent;
           const splittedDate = date.split('~');
-          const startDate = splittedDate[0].trim();
-          const endDate = splittedDate[1].trim();
           return {
             genre: 'musical',
             type: 'musical',
             imageUrl,
             title,
-            startDate,
-            endDate,
+            startDate: splittedDate[0],
+            endDate: splittedDate[1],
             location,
             distributor: 'interpark',
           };
@@ -117,15 +147,13 @@ export class BatchesService {
             '.ranking-horizontal-item_dateWrap__tRsWh',
           ).textContent;
           const splittedDate = date.split('~');
-          const startDate = splittedDate[0].trim();
-          const endDate = splittedDate[1].trim();
           tempList.push({
             genre: 'musical',
             type: 'musical',
             imageUrl,
             title,
-            startDate,
-            endDate,
+            startDate: splittedDate[0],
+            endDate: splittedDate[1],
             location,
             distributor: 'interpark',
           });
@@ -154,15 +182,13 @@ export class BatchesService {
             '.ranking-vertical-item_dateWrap__uZGMU',
           ).textContent;
           const splittedDate = date.split('~');
-          const startDate = splittedDate[0].trim();
-          const endDate = splittedDate[1].trim();
           return {
             genre: 'concert',
             type: 'concert',
             imageUrl,
             title,
-            startDate,
-            endDate,
+            startDate: splittedDate[0],
+            endDate: splittedDate[1],
             location,
             distributor: 'interpark',
           };
@@ -189,15 +215,13 @@ export class BatchesService {
             '.ranking-horizontal-item_dateWrap__tRsWh',
           ).textContent;
           const splittedDate = date.split('~');
-          const startDate = splittedDate[0].trim();
-          const endDate = splittedDate[1].trim();
           tempList.push({
             genre: 'concert',
             type: 'concert',
             imageUrl,
             title,
-            startDate,
-            endDate,
+            startDate: splittedDate[0],
+            endDate: splittedDate[1],
             location,
             distributor: 'interpark',
           });
@@ -208,6 +232,11 @@ export class BatchesService {
 
     const resultConcertRankList = concertRankList.concat(concertRankList2);
 
+    console.log({
+      resultMusicalRankList,
+      resultConcertRankList,
+    });
+
     const createMusicalRank = this.prisma.performanceRank.createMany({
       data: resultMusicalRankList,
     });
@@ -216,41 +245,60 @@ export class BatchesService {
       data: resultConcertRankList,
     });
 
-    await this.prisma.$transaction([createMusicalRank, createConcertRank]);
+    const transaction = await this.prisma.$transaction([
+      createMusicalRank,
+      createConcertRank,
+    ]);
 
-    await this.delay(10000);
+    if (transaction) {
+      await musicalPage.close();
+
+      await concertPage.close();
+    }
+
+    await this.delay(5000);
 
     await browser.close();
+
+    this.logger.debug('interParkScraping end');
   }
 
   async yes24Scraping() {
+    this.logger.debug('yes24Scraping now');
     puppeteer.use(plugin());
 
     const browser: Browser = await puppeteer.launch({
-      headless: 'new',
-      executablePath: executablePath(),
+      headless: true,
+      protocolTimeout: 4 * 60 * 1000,
+      ignoreHTTPSErrors: true,
+      dumpio: true,
+      args: ['--enable-gpu'],
     });
 
     const musicalPage = await browser.newPage();
-    musicalPage.setViewport({
+
+    await musicalPage.setViewport({
       width: 1920,
       height: 1080,
+      deviceScaleFactor: 1,
     });
-    musicalPage.setDefaultNavigationTimeout(2 * 60 * 1000);
 
     const concertPage = await browser.newPage();
-    concertPage.setViewport({
+
+    await concertPage.setViewport({
       width: 1920,
       height: 1080,
+      deviceScaleFactor: 1,
     });
-    concertPage.setDefaultNavigationTimeout(2 * 60 * 1000);
 
     await Promise.all([
       musicalPage.goto(this.configService.get<string>('YES24_MUSICAL_URL'), {
-        waitUntil: ['networkidle0'],
+        waitUntil: ['domcontentloaded'],
+        timeout: 30 * 1000,
       }),
       concertPage.goto(this.configService.get<string>('YES24_CONCERT_URL'), {
-        waitUntil: ['networkidle0'],
+        waitUntil: ['domcontentloaded'],
+        timeout: 30 * 1000,
       }),
     ]);
 
@@ -278,15 +326,13 @@ export class BatchesService {
           const date =
             item.querySelector('.rlb-sub-tit').childNodes[0].textContent;
           const splittedDate = date.split('~');
-          const startDate = splittedDate[0].trim();
-          const endDate = splittedDate[1].trim();
           return {
             genre: 'musical',
             type: 'musical',
             imageUrl,
             title,
-            startDate,
-            endDate,
+            startDate: splittedDate[0].trim(),
+            endDate: splittedDate[1].trim(),
             location,
             distributor: 'yes24',
           };
@@ -306,14 +352,12 @@ export class BatchesService {
             'div:nth-child(3) .rank-list-tit',
           ).textContent;
           const location = rankItems[i]
-            .querySelector('div:nth-child(4) p')
+            .querySelector('div:nth-child(4)')
             .textContent.substring(21);
           const date = rankItems[i]
-            .querySelector('div:nth-child(4) p')
+            .querySelector('div:nth-child(4)')
             .textContent.substring(0, 21);
           const splittedDate = date.split('~');
-          // const startDate = splittedDate[0].trim();
-          // const endDate = splittedDate[1].trim();
           tempList.push({
             genre: 'musical',
             type: 'musical',
@@ -343,15 +387,13 @@ export class BatchesService {
           const date =
             item.querySelector('.rlb-sub-tit').childNodes[0].textContent;
           const splittedDate = date.split('~');
-          const startDate = splittedDate[0].trim();
-          const endDate = splittedDate[1].trim();
           return {
             genre: 'concert',
             type: 'concert',
             imageUrl,
             title,
-            startDate,
-            endDate,
+            startDate: splittedDate[0].trim(),
+            endDate: splittedDate[1].trim(),
             location,
             distributor: 'yes24',
           };
@@ -371,14 +413,12 @@ export class BatchesService {
             'div:nth-child(3) .rank-list-tit',
           ).textContent;
           const location = rankItems[i]
-            .querySelector('div:nth-child(4) p')
+            .querySelector('div:nth-child(4)')
             .textContent.substring(21);
           const date = rankItems[i]
-            .querySelector('div:nth-child(4) p')
+            .querySelector('div:nth-child(4)')
             .textContent.substring(0, 21);
           const splittedDate = date.split('~');
-          // const startDate = splittedDate[0].trim();
-          // const endDate = splittedDate[1].trim();
           tempList.push({
             genre: 'concert',
             type: 'concert',
@@ -396,6 +436,11 @@ export class BatchesService {
 
     const resultConcertRankList = concertRankList.concat(concertRankList2);
 
+    console.log({
+      resultMusicalRankList,
+      resultConcertRankList,
+    });
+
     const createMusicalRank = this.prisma.performanceRank.createMany({
       data: resultMusicalRankList,
     });
@@ -404,46 +449,65 @@ export class BatchesService {
       data: resultConcertRankList,
     });
 
-    await this.prisma.$transaction([createMusicalRank, createConcertRank]);
+    const transaction = await this.prisma.$transaction([
+      createMusicalRank,
+      createConcertRank,
+    ]);
 
-    await this.delay(10000);
+    if (transaction) {
+      await musicalPage.close();
+
+      await concertPage.close();
+    }
+
+    await this.delay(5000);
 
     await browser.close();
+
+    this.logger.debug('yes24Scraping end');
   }
 
   async ticketLinkScraping() {
+    this.logger.debug('ticketLinkScraping now');
     puppeteer.use(plugin());
 
     const browser: Browser = await puppeteer.launch({
-      headless: 'new',
-      executablePath: executablePath(),
+      headless: true,
+      protocolTimeout: 4 * 60 * 1000,
+      ignoreHTTPSErrors: true,
+      dumpio: true,
+      args: ['--enable-gpu'],
     });
 
     const musicalPage = await browser.newPage();
-    musicalPage.setViewport({
+
+    await musicalPage.setViewport({
       width: 1920,
       height: 1080,
+      deviceScaleFactor: 1,
     });
-    musicalPage.setDefaultNavigationTimeout(2 * 60 * 1000);
 
     const concertPage = await browser.newPage();
-    concertPage.setViewport({
+
+    await concertPage.setViewport({
       width: 1920,
       height: 1080,
+      deviceScaleFactor: 1,
     });
-    concertPage.setDefaultNavigationTimeout(2 * 60 * 1000);
 
     await Promise.all([
       musicalPage.goto(
         this.configService.get<string>('TICKETLINK_MUSICAL_URL'),
         {
-          waitUntil: ['networkidle0'],
+          waitUntil: ['domcontentloaded'],
+          timeout: 30 * 1000,
         },
       ),
       concertPage.goto(
         this.configService.get<string>('TICKETLINK_CONCERT_URL'),
         {
-          waitUntil: ['networkidle0'],
+          waitUntil: ['domcontentloaded'],
+          timeout: 30 * 1000,
         },
       ),
     ]);
@@ -488,8 +552,6 @@ export class BatchesService {
             'td:nth-child(3) .ranking_product_sideinfo .ranking_product_period',
           ).textContent;
           const splittedDate = date.split('-');
-          // const startDate = splittedDate[0].trim();
-          // const endDate = splittedDate[1].trim();
           return {
             genre: 'musical',
             type: 'musical',
@@ -524,8 +586,6 @@ export class BatchesService {
             'td:nth-child(3) .ranking_product_sideinfo .ranking_product_period',
           ).textContent;
           const splittedDate = date.split('-');
-          // const startDate = splittedDate[0].trim();
-          // const endDate = splittedDate[1].trim();
           return {
             genre: 'concert',
             type: 'concert',
@@ -542,6 +602,11 @@ export class BatchesService {
 
     const resultConcertRankList = concertRankList;
 
+    console.log({
+      resultMusicalRankList,
+      resultConcertRankList,
+    });
+
     const createMusicalRank = this.prisma.performanceRank.createMany({
       data: resultMusicalRankList,
     });
@@ -550,41 +615,60 @@ export class BatchesService {
       data: resultConcertRankList,
     });
 
-    await this.prisma.$transaction([createMusicalRank, createConcertRank]);
+    const transaction = await this.prisma.$transaction([
+      createMusicalRank,
+      createConcertRank,
+    ]);
 
-    await this.delay(10000);
+    if (transaction) {
+      await musicalPage.close();
+
+      await concertPage.close();
+    }
+
+    await this.delay(5000);
 
     await browser.close();
+
+    this.logger.debug('ticketLinkScraping end');
   }
 
   async melonScraping() {
+    this.logger.debug('melonScraping now');
     puppeteer.use(plugin());
 
     const browser: Browser = await puppeteer.launch({
-      headless: 'new',
-      executablePath: executablePath(),
+      headless: true,
+      protocolTimeout: 4 * 60 * 1000,
+      ignoreHTTPSErrors: true,
+      dumpio: true,
+      args: ['--enable-gpu'],
     });
 
     const musicalPage = await browser.newPage();
-    musicalPage.setViewport({
+
+    await musicalPage.setViewport({
       width: 1920,
       height: 1080,
+      deviceScaleFactor: 1,
     });
-    musicalPage.setDefaultNavigationTimeout(2 * 60 * 1000);
 
     const concertPage = await browser.newPage();
-    concertPage.setViewport({
+
+    await concertPage.setViewport({
       width: 1920,
       height: 1080,
+      deviceScaleFactor: 1,
     });
-    concertPage.setDefaultNavigationTimeout(2 * 60 * 1000);
 
     await Promise.all([
       musicalPage.goto(this.configService.get<string>('MELON_MUSICAL_URL'), {
-        waitUntil: ['networkidle0'],
+        waitUntil: ['domcontentloaded'],
+        timeout: 30 * 1000,
       }),
       concertPage.goto(this.configService.get<string>('MELON_CONCERT_URL'), {
-        waitUntil: ['networkidle0'],
+        waitUntil: ['domcontentloaded'],
+        timeout: 30 * 1000,
       }),
     ]);
 
@@ -612,8 +696,6 @@ export class BatchesService {
             'td:nth-child(2) .show_date',
           ).textContent;
           const splittedDate = date.split('-');
-          // const startDate = splittedDate[0].trim();
-          // const endDate = splittedDate[1].trim();
           return {
             genre: 'musical',
             type: 'musical',
@@ -646,11 +728,9 @@ export class BatchesService {
             'td:nth-child(2) .show_date',
           ).textContent;
           const splittedDate = date.split('-');
-          // const startDate = splittedDate[0].trim();
-          // const endDate = splittedDate[1].trim();
           return {
-            genre: 'musical',
-            type: 'musical',
+            genre: 'concert',
+            type: 'concert',
             imageUrl,
             title,
             startDate: splittedDate[0].trim(),
@@ -672,11 +752,27 @@ export class BatchesService {
       data: resultConcertRankList,
     });
 
-    await this.prisma.$transaction([createMusicalRank, createConcertRank]);
+    console.log({
+      resultMusicalRankList,
+      resultConcertRankList,
+    });
 
-    await this.delay(10000);
+    const transaction = await this.prisma.$transaction([
+      createMusicalRank,
+      createConcertRank,
+    ]);
+
+    if (transaction) {
+      await musicalPage.close();
+
+      await concertPage.close();
+    }
+
+    await this.delay(5000);
 
     await browser.close();
+
+    this.logger.debug('melonScraping end');
   }
 
   private delay(seconds: number) {
@@ -685,41 +781,45 @@ export class BatchesService {
     });
   }
 
-  // addCronJob() {
-  //   const name = 'cronSample';
+  async addJob(jobName: string, time: string) {
+    await this.interParkScraping();
+    await this.yes24Scraping();
+    await this.ticketLinkScraping();
+    await this.melonScraping();
 
-  //   const job = new CronJob('* * * * * *', () => {
-  //     this.logger.warn(`run! ${name}`);
-  //   });
+    const job = new CronJob(`${time}`, async () => {
+      this.logger.debug(`time (${time}) for job ${jobName} to run!`);
+      await this.interParkScraping();
+      await this.yes24Scraping();
+      await this.ticketLinkScraping();
+      await this.melonScraping();
+    });
 
-  //   this.schedulerRegistry.addCronJob(name, job);
+    this.schedulerRegistry.addCronJob(jobName, job);
 
-  //   this.logger.warn(`job ${name} added!!`);
-  // }
+    job.start();
 
-  /**
-   *
-   *  * * * * * *
-      | | | | | |
-      | | | | | day of week
-      | | | | months
-      | | | day of month
-      | | hours
-      | minutes
-      seconds (optional)
-  */
-  // @Cron('*/10 * * * * *', { name: 'cronTask' })
-  // private handleCron() {
-  //   this.logger.error('cronTask Called!');
-  // }
+    this.logger.debug(`${jobName} job start now : ${new Date().getDate()}`);
+  }
 
-  // @Interval('intervalTask', 3000)
-  // private handleInterval() {
-  //   this.logger.log('intervalTask Called!');
-  // }
+  stopJob(jobName: string) {
+    const job = this.schedulerRegistry.getCronJob('testJob');
 
-  // @Timeout('timeout', 3000)
-  // private handleTimeout() {
-  //   this.logger.log('timeoutTask Called!');
-  // }
+    job.stop();
+
+    this.logger.debug(`${jobName} job start now : ${job.lastDate()}`);
+  }
+
+  getJobs() {
+    const jobs = this.schedulerRegistry.getCronJobs();
+    jobs.forEach((value, key) => {
+      let next;
+      try {
+        next = value.nextDates();
+      } catch (e) {
+        next = 'error: next fire date is in the past!';
+      }
+      this.logger.log(`job: ${key} -> next: ${next}`);
+    });
+  }
 }

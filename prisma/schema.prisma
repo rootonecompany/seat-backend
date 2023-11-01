@@ -210,8 +210,9 @@ model PerformanceRank {
   type String
   imageUrl String
   title String
-  startDate String
-  endDate String
+  startDate String?
+  endDate String?
+  location String?
   distributor String
   createdAt DateTime @default(now())
 }
