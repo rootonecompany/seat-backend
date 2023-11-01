@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SchedulerRegistry } from '@nestjs/schedule';
+import { SchedulerRegistry, Timeout } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
@@ -821,5 +821,13 @@ export class BatchesService {
       }
       this.logger.log(`job: ${key} -> next: ${next}`);
     });
+  }
+
+  @Timeout(1000)
+  async createPerformanceRank() {
+    await this.interParkScraping();
+    await this.yes24Scraping();
+    await this.ticketLinkScraping();
+    await this.melonScraping();
   }
 }
