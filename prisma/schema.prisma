@@ -43,6 +43,7 @@ model Concert {
   title String @db.VarChar(255)
   subtitle String @db.Text
   genre String
+  type String
   rating Int
   runningTime Int
   startDate DateTime

@@ -9,7 +9,7 @@ import { AuthenticationService } from './authentication.service';
 import { Response } from 'express';
 import { LoginDto } from './dto/login.dto';
 import { UserDto } from 'src/user/dto/user.dto';
-import { RegisterDto } from './dto/register.dto';
+import { UserRegisterDto } from './dto/userRegister.dto';
 
 @Controller('authentication')
 @ApiTags('authentication')
@@ -22,8 +22,11 @@ export class AuthenticationController {
     description: '회원가입 완료',
     type: UserDto,
   })
-  async register(@Body() registerDto: RegisterDto, @Res() res: Response) {
-    const register = await this.authService.register(registerDto);
+  async register(
+    @Body() userRegisterDto: UserRegisterDto,
+    @Res() res: Response,
+  ) {
+    const register = await this.authService.register(userRegisterDto);
 
     return res.status(HttpStatus.CREATED).json(register);
   }
@@ -36,6 +39,6 @@ export class AuthenticationController {
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
     const login = await this.authService.login(loginDto);
 
-    return res.status(HttpStatus.CREATED).json(login);
+    return res.status(HttpStatus.OK).json(login);
   }
 }

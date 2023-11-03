@@ -8,7 +8,7 @@ import { LoginDto } from './dto/login.dto';
 import { compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UserDto } from 'src/user/dto/user.dto';
-import { RegisterDto } from './dto/register.dto';
+import { UserRegisterDto } from './dto/userRegister.dto';
 import { User } from '@prisma/client';
 
 const EXPIRE_TIME = 60 * 60 * 1000; // 1h
@@ -20,14 +20,14 @@ export class AuthenticationService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<UserDto> {
-    const user = await this.userService.findByUserId(registerDto.userId);
+  async register(userRegisterDto: UserRegisterDto): Promise<UserDto> {
+    const user = await this.userService.findByUserId(userRegisterDto.userId);
 
     if (user) {
       throw new ConflictException('이미 가입된 아이디입니다.');
     }
 
-    return await this.userService.create(registerDto);
+    return await this.userService.create(userRegisterDto);
   }
 
   async login(loginDto: LoginDto): Promise<UserDto> {

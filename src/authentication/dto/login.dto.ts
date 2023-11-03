@@ -7,7 +7,7 @@ export class LoginDto {
   @ApiProperty({
     description: '아이디',
     required: true,
-    example: 'test100',
+    example: 'test',
   })
   userId!: string;
 
@@ -16,7 +16,7 @@ export class LoginDto {
   @ApiProperty({
     description: '비밀번호',
     required: true,
-    example: 'test100',
+    example: 'test',
   })
   password!: string;
 }

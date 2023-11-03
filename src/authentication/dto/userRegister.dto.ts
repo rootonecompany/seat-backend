@@ -1,13 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 
-export class RegisterDto {
+export class UserRegisterDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({
     description: '아이디',
     required: true,
-    example: 'test100',
+    example: 'test',
   })
   userId!: string;
 
@@ -16,7 +16,7 @@ export class RegisterDto {
   @ApiProperty({
     description: '아이디',
     required: true,
-    example: 'test100',
+    example: 'test',
   })
   password!: string;
 
@@ -25,7 +25,7 @@ export class RegisterDto {
   @ApiProperty({
     description: '이름',
     required: true,
-    example: 'test100',
+    example: 'test',
   })
   name!: string;
 
@@ -34,7 +34,7 @@ export class RegisterDto {
   @ApiProperty({
     description: '폰번호',
     required: true,
-    example: '01012341234',
+    example: '01011111111',
   })
   phone!: string;
 
@@ -43,7 +43,7 @@ export class RegisterDto {
   @ApiProperty({
     description: '폰번호 인증 여부',
     required: true,
-    example: '01012341234',
+    example: 'true',
   })
   isPhoneVerified!: boolean;
 }

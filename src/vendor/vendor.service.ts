@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/utils/prisma.service';
 import { PerformanceDto } from './dto/performance.dto';
-import { RegisterDto } from './dto/register.dto';
+import { VendorRegisterDto } from './dto/vendorRegister.dto';
 
 @Injectable()
 export class VendorService {
@@ -14,26 +14,22 @@ export class VendorService {
   constructor(private readonly prisma: PrismaService) {}
 
   async register(
-    files: {
-      vendor_main_image: Express.Multer.File[];
-      vendor_detail_image: Express.Multer.File[];
-    },
-    registerDto: RegisterDto,
+    vendorRegisterDto: VendorRegisterDto,
   ): Promise<PerformanceDto> {
-    const startAts = registerDto.startAts.map((startAt) => {
+    const startAts = vendorRegisterDto.startAts.map((startAt) => {
       return {
         startAt: startAt.startAt,
       };
     });
 
-    const venues = registerDto.places.map((venue) => {
+    const venues = vendorRegisterDto.places.map((venue) => {
       return {
         city: venue.city,
         location: venue.place,
       };
     });
 
-    const seatRanks = registerDto.seatRanks.map((seatRank) => {
+    const seatRanks = vendorRegisterDto.seatRanks.map((seatRank) => {
       return {
         seatRank: seatRank.seatRank,
         count: seatRank.count,
@@ -41,20 +37,20 @@ export class VendorService {
       };
     });
 
-    const floors = registerDto.floors.map((floor) => {
+    const floors = vendorRegisterDto.floors.map((floor) => {
       return {
         floor: floor.floor,
       };
     });
 
-    const sections = registerDto.sections.map((section) => {
+    const sections = vendorRegisterDto.sections.map((section) => {
       return {
         section: section.section,
         floorId: section.floor,
       };
     });
 
-    const seatColumns = registerDto.columns.map((seatColumn) => {
+    const seatColumns = vendorRegisterDto.columns.map((seatColumn) => {
       return {
         sectionName: seatColumn.section,
         floorId: seatColumn.floor,
@@ -68,37 +64,40 @@ export class VendorService {
 
     const register = await this.prisma.concert.create({
       data: {
-        title: registerDto.title,
-        subtitle: registerDto.subtitle,
+        title: vendorRegisterDto.title,
+        subtitle: vendorRegisterDto.subtitle,
         genre: 'concert',
-        rating: Number(registerDto.rating),
-        runningTime: Number(registerDto.runningTime),
-        startDate: new Date(registerDto.startDate),
-        endDate: new Date(registerDto.endDate),
+        rating: Number(vendorRegisterDto.rating),
+        runningTime: Number(vendorRegisterDto.runningTime),
+        startDate: new Date(vendorRegisterDto.startDate),
+        endDate: new Date(vendorRegisterDto.endDate),
         concertFiles: {
           createMany: {
             data: [
               {
                 type: 'main',
-                fieldName: files.vendor_main_image[0].fieldname,
-                originalName: files.vendor_main_image[0].originalname,
-                encoding: files.vendor_main_image[0].encoding,
-                mimeType: files.vendor_main_image[0].mimetype,
-                destination: files.vendor_main_image[0].destination,
-                fileName: files.vendor_main_image[0].filename,
-                path: files.vendor_main_image[0].path,
-                size: files.vendor_main_image[0].size,
+                fieldName: vendorRegisterDto.vendor_main_image[0].fieldname,
+                originalName:
+                  vendorRegisterDto.vendor_main_image[0].originalname,
+                encoding: vendorRegisterDto.vendor_main_image[0].encoding,
+                mimeType: vendorRegisterDto.vendor_main_image[0].mimetype,
+                destination: vendorRegisterDto.vendor_main_image[0].destination,
+                fileName: vendorRegisterDto.vendor_main_image[0].filename,
+                path: vendorRegisterDto.vendor_main_image[0].path,
+                size: vendorRegisterDto.vendor_main_image[0].size,
               },
               {
                 type: 'detail',
-                fieldName: files.vendor_detail_image[0].fieldname,
-                originalName: files.vendor_detail_image[0].originalname,
-                encoding: files.vendor_detail_image[0].encoding,
-                mimeType: files.vendor_detail_image[0].mimetype,
-                destination: files.vendor_detail_image[0].destination,
-                fileName: files.vendor_detail_image[0].filename,
-                path: files.vendor_detail_image[0].path,
-                size: files.vendor_detail_image[0].size,
+                fieldName: vendorRegisterDto.vendor_detail_image[0].fieldname,
+                originalName:
+                  vendorRegisterDto.vendor_detail_image[0].originalname,
+                encoding: vendorRegisterDto.vendor_detail_image[0].encoding,
+                mimeType: vendorRegisterDto.vendor_detail_image[0].mimetype,
+                destination:
+                  vendorRegisterDto.vendor_detail_image[0].destination,
+                fileName: vendorRegisterDto.vendor_detail_image[0].filename,
+                path: vendorRegisterDto.vendor_detail_image[0].path,
+                size: vendorRegisterDto.vendor_detail_image[0].size,
               },
             ],
           },

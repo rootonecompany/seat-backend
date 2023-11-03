@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { hash } from 'bcrypt';
 import { PrismaService } from 'src/utils/prisma.service';
 import { UserDto } from './dto/user.dto';
-import { RegisterDto } from 'src/authentication/dto/register.dto';
+import { UserRegisterDto } from 'src/authentication/dto/userRegister.dto';
 import { User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
+import { FindUserDto } from './dto/findUser.dto';
+import crypto from 'crypto';
 
 const EXPIRE_TIME = 60 * 60 * 1000; // 1h
 
@@ -23,14 +25,14 @@ export class UserService {
     });
   }
 
-  async create(registerDto: RegisterDto): Promise<UserDto> {
+  async create(userRegisterDto: UserRegisterDto): Promise<UserDto> {
     const user = await this.prisma.user.create({
       data: {
-        userId: registerDto.userId,
-        hashedPassword: await hash(registerDto.password, 10),
-        name: registerDto.name,
-        phone: registerDto.phone,
-        isPhoneVerified: registerDto.isPhoneVerified,
+        userId: userRegisterDto.userId,
+        hashedPassword: await hash(userRegisterDto.password, 10),
+        name: userRegisterDto.name,
+        phone: userRegisterDto.phone,
+        isPhoneVerified: userRegisterDto.isPhoneVerified,
       },
       select: {
         id: true,
@@ -80,5 +82,36 @@ export class UserService {
         refreshToken,
       },
     });
+  }
+
+  async findId(findUserDto: FindUserDto): Promise<FindUserDto> {
+    return await this.prisma.user.findFirst({
+      where: {
+        name: findUserDto.name,
+        phone: findUserDto.phone,
+      },
+      select: {
+        userId: true,
+      },
+    });
+  }
+
+  async findPassword(findUserDto: FindUserDto): Promise<FindUserDto> {
+    const tempPassword = crypto.randomBytes(20).toString('base64');
+
+    await this.prisma.user.update({
+      where: {
+        userId: findUserDto.userId,
+        name: findUserDto.name,
+        phone: findUserDto.phone,
+      },
+      data: {
+        hashedPassword: await hash(tempPassword, 10),
+      },
+    });
+
+    return {
+      password: tempPassword,
+    };
   }
 }

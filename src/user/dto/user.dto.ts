@@ -21,19 +21,19 @@ export class UserDto {
   role!: string;
 
   @ApiProperty({
-    description: '유저 아이디',
+    description: '아이디',
     required: true,
-    example: 'test100',
+    example: 'test',
   })
   userId!: string;
 
-  @ApiProperty({ description: '이름', required: true, example: 'test100' })
+  @ApiProperty({ description: '이름', required: true, example: 'test' })
   name!: string;
 
   @ApiProperty({
     description: '폰번호',
     required: true,
-    example: '01012341234',
+    example: '01011111111',
   })
   phone!: string;
 

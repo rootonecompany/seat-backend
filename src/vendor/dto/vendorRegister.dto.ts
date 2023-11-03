@@ -39,7 +39,7 @@ type Columns = {
   seatRank: string;
 };
 
-export class RegisterDto {
+export class VendorRegisterDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({
@@ -54,7 +54,7 @@ export class RegisterDto {
   @ApiProperty({
     description: '부제목',
     required: true,
-    example: 'test100',
+    example: 'test',
   })
   subtitle!: string;
 
@@ -75,7 +75,7 @@ export class RegisterDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({
-    description: '공연 기간 (start)',
+    description: '공연 시작일',
     required: true,
     example: '2023-01-01',
   })
@@ -84,7 +84,7 @@ export class RegisterDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({
-    description: '공연 기간 (end)',
+    description: '공연 종료일',
     required: true,
     example: '2023-01-20',
   })
@@ -170,4 +170,42 @@ export class RegisterDto {
     ]`,
   })
   columns!: Columns[];
+
+  @IsNotEmpty()
+  @ApiProperty({
+    description: '메인 이미지 파일',
+    required: true,
+    example: `[
+      {
+        "fieldname": "file",
+        "originalname": "dart.txt",
+        "encoding": "7bit",
+        "mimetype": "text/plain",
+        "buffer": "<Buffer 20 0a 69 6d  ... 401 more bytes>",
+        "size": 451,
+        "comment": "some comment",
+        "outletId": 123456
+      }
+    ]`,
+  })
+  vendor_main_image: Express.Multer.File[];
+
+  @IsNotEmpty()
+  @ApiProperty({
+    description: '상세 이미지 파일',
+    required: true,
+    example: `[
+      {
+        "fieldname": "file",
+        "originalname": "dart.txt",
+        "encoding": "7bit",
+        "mimetype": "text/plain",
+        "buffer": "<Buffer 20 0a 69 6d  ... 401 more bytes>",
+        "size": 451,
+        "comment": "some comment",
+        "outletId": 123456
+      }
+    ]`,
+  })
+  vendor_detail_image: Express.Multer.File[];
 }
