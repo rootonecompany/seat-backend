@@ -1,45 +1,74 @@
-import { ConflictException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/utils/prisma.service';
-import { RegisterDto } from './dto/user-register.dto';
-import { hash } from 'bcrypt';
-import { ResponseRegisterDto } from './types/user-register.dto';
+import { UserService } from './../user/user.service';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { LoginDto } from './dto/login.dto';
+import { compare } from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { UserDto } from 'src/user/dto/user.dto';
+import { RegisterDto } from './dto/register.dto';
+import { User } from '@prisma/client';
+
+const EXPIRE_TIME = 60 * 60 * 1000; // 1h
 
 @Injectable()
 export class AuthenticationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  async register(registerDto: RegisterDto): Promise<ResponseRegisterDto> {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        userId: registerDto.userId,
-      },
-    });
+  async register(registerDto: RegisterDto): Promise<UserDto> {
+    const user = await this.userService.findByUserId(registerDto.userId);
 
     if (user) {
       throw new ConflictException('이미 가입된 아이디입니다.');
     }
 
-    const newUser = await this.prisma.user.create({
-      data: {
-        userId: registerDto.userId,
-        hashedPassword: await hash(registerDto.password, 10),
-        name: registerDto.name,
-        phone: registerDto.phone,
-        isPhoneVerified: registerDto.isPhoneVerified,
+    return await this.userService.create(registerDto);
+  }
+
+  async login(loginDto: LoginDto): Promise<UserDto> {
+    const user = await this.validateUser(loginDto);
+
+    const payload = {
+      userId: user.userId,
+      sub: {
+        name: user.name,
       },
-      select: {
-        id: true,
-        role: true,
-        userId: true,
-        name: true,
-        phone: true,
-        phone_e164: true,
-        isPhoneVerified: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    };
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: '1h',
+      secret: process.env.JWT_SECRET_KEY,
     });
 
-    return newUser;
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      expiresIn: '1y',
+      secret: process.env.JWT_REFRESH_KEY,
+    });
+
+    const patchedUser = await this.userService.patchRefreshToken(
+      user.id,
+      refreshToken,
+    );
+
+    return {
+      ...patchedUser,
+      accessToken: accessToken,
+      expireIn: new Date().setTime(new Date().getTime() + EXPIRE_TIME),
+    };
+  }
+
+  async validateUser(loginDto: LoginDto): Promise<User> {
+    const user = await this.userService.findByUserId(loginDto.userId);
+
+    if (user && (await compare(loginDto.password, user.hashedPassword))) {
+      return user;
+    }
+
+    throw new UnauthorizedException('비밀번호가 틀립니다.');
   }
 }

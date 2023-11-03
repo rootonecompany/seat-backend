@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SchedulerRegistry, Timeout } from '@nestjs/schedule';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
@@ -16,28 +16,6 @@ export class BatchesService {
     private readonly configService: ConfigService,
     private schedulerRegistry: SchedulerRegistry,
   ) {}
-
-  // async test() {
-  //   puppeteer.use(plugin());
-
-  //   const browser: Browser = await puppeteer.launch({
-  //     headless: 'new',
-  //     protocolTimeout: 4 * 60 * 1000,
-  //     ignoreHTTPSErrors: true,
-  //     dumpio: true,
-  //     args: ['--enable-gpu'],
-  //   });
-
-  //   const page = await browser.newPage();
-
-  //   await page.goto('https://bot.sannysoft.com', {
-  //     waitUntil: ['domcontentloaded'],
-  //     timeout: 30 * 1000,
-  //   });
-
-  //   await page.screenshot({ path: 'bot.jpg' });
-  //   await browser.close();
-  // }
 
   async interParkScraping() {
     this.logger.debug('interParkScraping now');
@@ -781,7 +759,7 @@ export class BatchesService {
     });
   }
 
-  async addJob(jobName: string, time: string) {
+  async addScrapingJob(jobName: string, time: string) {
     await this.interParkScraping();
     await this.yes24Scraping();
     await this.ticketLinkScraping();
@@ -802,8 +780,8 @@ export class BatchesService {
     this.logger.debug(`${jobName} job start now : ${new Date().getDate()}`);
   }
 
-  stopJob(jobName: string) {
-    const job = this.schedulerRegistry.getCronJob('testJob');
+  stopScrapingJob(jobName: string) {
+    const job = this.schedulerRegistry.getCronJob(jobName);
 
     job.stop();
 
@@ -822,12 +800,4 @@ export class BatchesService {
       this.logger.log(`job: ${key} -> next: ${next}`);
     });
   }
-
-  // @Timeout(1000)
-  // async createPerformanceRank() {
-  //   await this.interParkScraping();
-  //   await this.yes24Scraping();
-  //   await this.ticketLinkScraping();
-  //   await this.melonScraping();
-  // }
 }

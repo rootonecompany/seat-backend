@@ -5,7 +5,7 @@ export class RegisterDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({
-    description: '유저 아이디',
+    description: '아이디',
     required: true,
     example: 'test100',
   })
@@ -14,7 +14,7 @@ export class RegisterDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({
-    description: '유저 비밀번호',
+    description: '아이디',
     required: true,
     example: 'test100',
   })
@@ -22,7 +22,11 @@ export class RegisterDto {
 
   @IsNotEmpty()
   @IsString()
-  @ApiProperty({ description: '이름', required: true, example: 'test100' })
+  @ApiProperty({
+    description: '이름',
+    required: true,
+    example: 'test100',
+  })
   name!: string;
 
   @IsNotEmpty()
@@ -39,7 +43,7 @@ export class RegisterDto {
   @ApiProperty({
     description: '폰번호 인증 여부',
     required: true,
-    example: true,
+    example: '01012341234',
   })
   isPhoneVerified!: boolean;
 }

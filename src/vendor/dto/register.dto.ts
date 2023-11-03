@@ -39,7 +39,7 @@ type Columns = {
   seatRank: string;
 };
 
-export class PerformanceRegisterDto {
+export class RegisterDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({

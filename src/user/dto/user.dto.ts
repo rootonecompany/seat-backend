@@ -4,7 +4,7 @@ enum Role {
   USER = 'USER',
 }
 
-export class ResponseRegisterDto {
+export class UserDto {
   @ApiProperty({
     description: '인덱스',
     required: true,
@@ -64,4 +64,19 @@ export class ResponseRegisterDto {
     example: '2023-11-01T11:43:03.388Z',
   })
   updatedAt!: Date;
+
+  @ApiProperty({
+    description: 'access token',
+    required: false,
+    example:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3RAdGVzdC5jb20iLCJzdWIiOnsibmFtZSI6InRlc3QifSwiaWF0IjoxNjk4OTA4MjMwLCJleHAiOjE2OTg5MDgyNTB9.pFlaje4swAi0PoLUvNa4vqvv4sdrVGewNezB1MW0gWY',
+  })
+  accessToken?: string;
+
+  @ApiProperty({
+    description: 'access token',
+    required: false,
+    example: '1698985883295',
+  })
+  expireIn?: number;
 }

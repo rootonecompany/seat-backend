@@ -1,10 +1,16 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/utils/prisma.service';
-import { PerformanceRegisterDto } from './dto/performance-register.dto';
-import { ResponsePerformanceRegisterDto } from './types/performance-register.dto';
+import { PerformanceDto } from './dto/performance.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class VendorService {
+  private readonly logger = new Logger(VendorService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async register(
@@ -12,22 +18,22 @@ export class VendorService {
       vendor_main_image: Express.Multer.File[];
       vendor_detail_image: Express.Multer.File[];
     },
-    performanceRegisterDto: PerformanceRegisterDto,
-  ): Promise<ResponsePerformanceRegisterDto> {
-    const startAts = performanceRegisterDto.startAts.map((startAt) => {
+    registerDto: RegisterDto,
+  ): Promise<PerformanceDto> {
+    const startAts = registerDto.startAts.map((startAt) => {
       return {
         startAt: startAt.startAt,
       };
     });
 
-    const venues = performanceRegisterDto.places.map((venue) => {
+    const venues = registerDto.places.map((venue) => {
       return {
         city: venue.city,
         location: venue.place,
       };
     });
 
-    const seatRanks = performanceRegisterDto.seatRanks.map((seatRank) => {
+    const seatRanks = registerDto.seatRanks.map((seatRank) => {
       return {
         seatRank: seatRank.seatRank,
         count: seatRank.count,
@@ -35,20 +41,20 @@ export class VendorService {
       };
     });
 
-    const floors = performanceRegisterDto.floors.map((floor) => {
+    const floors = registerDto.floors.map((floor) => {
       return {
         floor: floor.floor,
       };
     });
 
-    const sections = performanceRegisterDto.sections.map((section) => {
+    const sections = registerDto.sections.map((section) => {
       return {
         section: section.section,
         floorId: section.floor,
       };
     });
 
-    const seatColumns = performanceRegisterDto.columns.map((seatColumn) => {
+    const seatColumns = registerDto.columns.map((seatColumn) => {
       return {
         sectionName: seatColumn.section,
         floorId: seatColumn.floor,
@@ -62,13 +68,13 @@ export class VendorService {
 
     const register = await this.prisma.concert.create({
       data: {
-        title: performanceRegisterDto.title,
-        subtitle: performanceRegisterDto.subtitle,
+        title: registerDto.title,
+        subtitle: registerDto.subtitle,
         genre: 'concert',
-        rating: Number(performanceRegisterDto.rating),
-        runningTime: Number(performanceRegisterDto.runningTime),
-        startDate: new Date(performanceRegisterDto.startDate),
-        endDate: new Date(performanceRegisterDto.endDate),
+        rating: Number(registerDto.rating),
+        runningTime: Number(registerDto.runningTime),
+        startDate: new Date(registerDto.startDate),
+        endDate: new Date(registerDto.endDate),
         concertFiles: {
           createMany: {
             data: [
@@ -285,7 +291,7 @@ export class VendorService {
         }),
       );
     } catch (error) {
-      console.log('===== error =====', error);
+      this.logger.error(error);
       throw new ServiceUnavailableException('update fail seatColumn');
     }
   }
@@ -312,7 +318,7 @@ export class VendorService {
         }),
       );
     } catch (error) {
-      console.log('===== error =====', error);
+      this.logger.error(error);
       throw new ServiceUnavailableException('update fail SeatRankId');
     }
   }
@@ -340,7 +346,7 @@ export class VendorService {
         }),
       );
     } catch (error) {
-      console.log('===== error =====', error);
+      this.logger.error(error);
       throw new ServiceUnavailableException('update fail SeatColumnId');
     }
   }

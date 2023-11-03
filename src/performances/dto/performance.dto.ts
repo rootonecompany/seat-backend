@@ -13,7 +13,7 @@ type SeatRows = {
   isReserved: boolean;
 };
 
-export class ResponsePerformanceDto {
+export class PerformanceDto {
   @ApiProperty({
     description: '인덱스',
     required: true,

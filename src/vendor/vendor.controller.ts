@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBody,
-  ApiConsumes,
+  // ApiConsumes,
   ApiCreatedResponse,
   ApiOperation,
   ApiTags,
@@ -18,8 +18,8 @@ import {
 import { VendorService } from './vendor.service';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { Request, Response } from 'express';
-import { PerformanceRegisterDto } from './dto/performance-register.dto';
-import { ResponsePerformanceRegisterDto } from './types/performance-register.dto';
+import { RegisterDto } from './dto/register.dto';
+import { PerformanceDto } from './dto/performance.dto';
 
 @Controller('vendor')
 @ApiTags('vendor')
@@ -28,14 +28,14 @@ export class VendorController {
 
   @Post('register')
   @ApiOperation({ summary: ' 티켓 등록' })
-  @ApiConsumes('multipart/form-data')
+  // @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: '티켓 등록',
-    type: PerformanceRegisterDto,
+    type: RegisterDto,
   })
   @ApiCreatedResponse({
     description: '티켓 등록 완료',
-    type: ResponsePerformanceRegisterDto,
+    type: PerformanceDto,
   })
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -49,7 +49,7 @@ export class VendorController {
       vendor_main_image: Express.Multer.File[];
       vendor_detail_image: Express.Multer.File[];
     },
-    @Body() performanceRegisterDto: PerformanceRegisterDto,
+    @Body() registerDto: RegisterDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
@@ -67,7 +67,9 @@ export class VendorController {
       sections: JSON.parse(req.body.sections),
       columns: JSON.parse(req.body.columns),
     };
+
     const register = await this.vendorService.register(files, newRegisterDto);
+
     return res.status(HttpStatus.CREATED).json(register);
   }
 }

@@ -47,7 +47,7 @@ type SeatRows = {
   userId: number | null;
 };
 
-export class ResponsePerformanceRegisterDto {
+export class PerformanceDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({
