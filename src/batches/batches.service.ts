@@ -93,14 +93,14 @@ export class BatchesService {
           ).textContent;
           const splittedDate = date.split('~');
           return {
-            genre: 'musical',
-            type: 'musical',
+            genre: '뮤지컬',
+            type: '뮤지컬',
             imageUrl,
             title,
             startDate: splittedDate[0],
             endDate: splittedDate[1],
             location,
-            distributor: 'interpark',
+            distributor: '인터파크',
           };
         });
       },
@@ -110,7 +110,7 @@ export class BatchesService {
       '.ranking-list-bottom_rankingListWrap__plRek .ranking-list-bottom_rankingListSubwrap__YSsif .ranking-list-bottom_rankingItemWrap__U0SBf',
       (rankItems) => {
         const tempList = [];
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 2; i++) {
           const imageContainer = rankItems[i].querySelector(
             '.ranking-horizontal-item_imageWrap__owTl6',
           );
@@ -126,14 +126,14 @@ export class BatchesService {
           ).textContent;
           const splittedDate = date.split('~');
           tempList.push({
-            genre: 'musical',
-            type: 'musical',
+            genre: '뮤지컬',
+            type: '뮤지컬',
             imageUrl,
             title,
             startDate: splittedDate[0],
             endDate: splittedDate[1],
             location,
-            distributor: 'interpark',
+            distributor: '인터파크',
           });
         }
         return tempList;
@@ -161,14 +161,14 @@ export class BatchesService {
           ).textContent;
           const splittedDate = date.split('~');
           return {
-            genre: 'concert',
-            type: 'concert',
+            genre: '콘서트',
+            type: '콘서트',
             imageUrl,
             title,
             startDate: splittedDate[0],
             endDate: splittedDate[1],
             location,
-            distributor: 'interpark',
+            distributor: '인터파크',
           };
         });
       },
@@ -178,7 +178,7 @@ export class BatchesService {
       '.ranking-list-bottom_rankingListWrap__plRek .ranking-list-bottom_rankingListSubwrap__YSsif .ranking-list-bottom_rankingItemWrap__U0SBf',
       (rankItems) => {
         const tempList = [];
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 2; i++) {
           const imageContainer = rankItems[i].querySelector(
             '.ranking-horizontal-item_imageWrap__owTl6',
           );
@@ -194,14 +194,14 @@ export class BatchesService {
           ).textContent;
           const splittedDate = date.split('~');
           tempList.push({
-            genre: 'concert',
-            type: 'concert',
+            genre: '콘서트',
+            type: '콘서트',
             imageUrl,
             title,
             startDate: splittedDate[0],
             endDate: splittedDate[1],
             location,
-            distributor: 'interpark',
+            distributor: '인터파크',
           });
         }
         return tempList;
@@ -305,12 +305,12 @@ export class BatchesService {
             item.querySelector('.rlb-sub-tit').childNodes[0].textContent;
           const splittedDate = date.split('~');
           return {
-            genre: 'musical',
-            type: 'musical',
+            genre: '뮤지컬',
+            type: '뮤지컬',
             imageUrl,
             title,
-            startDate: splittedDate[0].trim(),
-            endDate: splittedDate[1].trim(),
+            startDate: splittedDate[0],
+            endDate: splittedDate[1],
             location,
             distributor: 'yes24',
           };
@@ -322,7 +322,7 @@ export class BatchesService {
       '.rank-list > div',
       (rankItems) => {
         const tempList = [];
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 2; i++) {
           const imageContainer =
             rankItems[i].querySelector('div:nth-child(2) a');
           const imageUrl = imageContainer.querySelector('img').src;
@@ -337,8 +337,8 @@ export class BatchesService {
             .textContent.substring(0, 21);
           const splittedDate = date.split('~');
           tempList.push({
-            genre: 'musical',
-            type: 'musical',
+            genre: '뮤지컬',
+            type: '뮤지컬',
             imageUrl,
             title,
             startDate: splittedDate[0],
@@ -366,12 +366,12 @@ export class BatchesService {
             item.querySelector('.rlb-sub-tit').childNodes[0].textContent;
           const splittedDate = date.split('~');
           return {
-            genre: 'concert',
-            type: 'concert',
+            genre: '콘서트',
+            type: '콘서트',
             imageUrl,
             title,
-            startDate: splittedDate[0].trim(),
-            endDate: splittedDate[1].trim(),
+            startDate: splittedDate[0],
+            endDate: splittedDate[1],
             location,
             distributor: 'yes24',
           };
@@ -383,7 +383,7 @@ export class BatchesService {
       '.rank-list > div',
       (rankItems) => {
         const tempList = [];
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 2; i++) {
           const imageContainer =
             rankItems[i].querySelector('div:nth-child(2) a');
           const imageUrl = imageContainer.querySelector('img').src;
@@ -398,8 +398,8 @@ export class BatchesService {
             .textContent.substring(0, 21);
           const splittedDate = date.split('~');
           tempList.push({
-            genre: 'concert',
-            type: 'concert',
+            genre: '콘서트',
+            type: '콘서트',
             imageUrl,
             title,
             startDate: splittedDate[0],
@@ -515,32 +515,34 @@ export class BatchesService {
     const musicalRankList = await musicalPage.$$eval(
       '.ranking_product .ranking_product_table tbody tr',
       (rankItems) => {
-        return rankItems.map((item) => {
-          const imageContainer = item.querySelector(
+        const tempList = [];
+        for (let i = 0; i < 5; i++) {
+          const imageContainer = rankItems[i].querySelector(
             'td:nth-child(2) .ranking_product_info .ranking_product_link .ranking_product_imgbox',
           );
           const imageUrl = imageContainer.querySelector('img').src;
-          const title = item.querySelector(
+          const title = rankItems[i].querySelector(
             'td:nth-child(2) .ranking_product_info .ranking_product_link .ranking_product_title',
           ).textContent;
-          const location = item.querySelector(
+          const location = rankItems[i].querySelector(
             'td:nth-child(3) .ranking_product_sideinfo .ranking_product_place',
           ).textContent;
-          const date = item.querySelector(
+          const date = rankItems[i].querySelector(
             'td:nth-child(3) .ranking_product_sideinfo .ranking_product_period',
           ).textContent;
           const splittedDate = date.split('-');
-          return {
-            genre: 'musical',
-            type: 'musical',
+          tempList.push({
+            genre: '뮤지컬',
+            type: '뮤지컬',
             imageUrl,
             title,
-            startDate: splittedDate[0].trim(),
-            endDate: splittedDate[1].trim(),
+            startDate: splittedDate[0],
+            endDate: splittedDate[1],
             location,
-            distributor: 'ticketlink',
-          };
-        });
+            distributor: '티켓링크',
+          });
+        }
+        return tempList;
       },
     );
 
@@ -549,32 +551,34 @@ export class BatchesService {
     const concertRankList = await concertPage.$$eval(
       '.ranking_product .ranking_product_table tbody tr',
       (rankItems) => {
-        return rankItems.map((item) => {
-          const imageContainer = item.querySelector(
+        const tempList = [];
+        for (let i = 0; i < 5; i++) {
+          const imageContainer = rankItems[i].querySelector(
             'td:nth-child(2) .ranking_product_info .ranking_product_link .ranking_product_imgbox',
           );
           const imageUrl = imageContainer.querySelector('img').src;
-          const title = item.querySelector(
+          const title = rankItems[i].querySelector(
             'td:nth-child(2) .ranking_product_info .ranking_product_link .ranking_product_title',
           ).textContent;
-          const location = item.querySelector(
+          const location = rankItems[i].querySelector(
             'td:nth-child(3) .ranking_product_sideinfo .ranking_product_place',
           ).textContent;
-          const date = item.querySelector(
+          const date = rankItems[i].querySelector(
             'td:nth-child(3) .ranking_product_sideinfo .ranking_product_period',
           ).textContent;
           const splittedDate = date.split('-');
-          return {
-            genre: 'concert',
-            type: 'concert',
+          tempList.push({
+            genre: '콘서트',
+            type: '콘서트',
             imageUrl,
             title,
-            startDate: splittedDate[0].trim(),
-            endDate: splittedDate[1].trim(),
+            startDate: splittedDate[0],
+            endDate: splittedDate[1],
             location,
-            distributor: 'ticketlink',
-          };
-        });
+            distributor: '티켓링크',
+          });
+        }
+        return tempList;
       },
     );
 
@@ -661,30 +665,33 @@ export class BatchesService {
     const musicalRankList = await musicalPage.$$eval(
       '.box_ranking_list table tbody tr',
       (rankItems) => {
-        return rankItems.map((item) => {
-          const imageContainer = item.querySelector(
+        const tempList = [];
+        for (let i = 0; i < 5; i++) {
+          const imageContainer = rankItems[i].querySelector(
             'td:nth-child(1) div div a',
           );
           const imageUrl = imageContainer.querySelector('img').src;
-          const title = item.querySelector(
+          const title = rankItems[i].querySelector(
             'td:nth-child(1) div .infor_text .show_title',
           ).textContent;
-          const location = item.querySelector('td:nth-child(3)').textContent;
-          const date = item.querySelector(
+          const location =
+            rankItems[i].querySelector('td:nth-child(3)').textContent;
+          const date = rankItems[i].querySelector(
             'td:nth-child(2) .show_date',
           ).textContent;
           const splittedDate = date.split('-');
-          return {
-            genre: 'musical',
-            type: 'musical',
+          tempList.push({
+            genre: '뮤지컬',
+            type: '뮤지컬',
             imageUrl,
             title,
             startDate: splittedDate[0].trim(),
             endDate: splittedDate[1].trim(),
             location,
-            distributor: 'melon',
-          };
-        });
+            distributor: '멜론티켓',
+          });
+        }
+        return tempList;
       },
     );
 
@@ -693,30 +700,33 @@ export class BatchesService {
     const concertRankList = await concertPage.$$eval(
       '.box_ranking_list table tbody tr',
       (rankItems) => {
-        return rankItems.map((item) => {
-          const imageContainer = item.querySelector(
+        const tempList = [];
+        for (let i = 0; i < 5; i++) {
+          const imageContainer = rankItems[i].querySelector(
             'td:nth-child(1) div div a',
           );
           const imageUrl = imageContainer.querySelector('img').src;
-          const title = item.querySelector(
+          const title = rankItems[i].querySelector(
             'td:nth-child(1) div .infor_text .show_title',
           ).textContent;
-          const location = item.querySelector('td:nth-child(3)').textContent;
-          const date = item.querySelector(
+          const location =
+            rankItems[i].querySelector('td:nth-child(3)').textContent;
+          const date = rankItems[i].querySelector(
             'td:nth-child(2) .show_date',
           ).textContent;
           const splittedDate = date.split('-');
-          return {
-            genre: 'concert',
-            type: 'concert',
+          tempList.push({
+            genre: '콘서트',
+            type: '콘서트',
             imageUrl,
             title,
             startDate: splittedDate[0].trim(),
             endDate: splittedDate[1].trim(),
             location,
-            distributor: 'melon',
-          };
-        });
+            distributor: '멜론티켓',
+          });
+        }
+        return tempList;
       },
     );
 

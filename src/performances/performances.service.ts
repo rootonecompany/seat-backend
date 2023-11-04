@@ -83,15 +83,52 @@ export class PerformancesService {
   }
 
   async findAllPerformanceRanks(): Promise<RankDto[]> {
-    try {
-      return await this.prisma.performanceRank.findMany({
-        orderBy: {
-          id: 'asc',
-        },
-      });
-    } catch (error) {
-      this.logger.error(error);
+    const performances = await this.prisma.performanceRank.findMany({
+      where: {
+        genre: '콘서트',
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
+
+    const distributors = await this.prisma.performanceRank.groupBy({
+      by: ['distributor'],
+    });
+
+    const filteredPerformances = [];
+
+    for (let i = 0; i < distributors.length; i++) {
+      const temp = {
+        id: i + 1,
+        name: distributors[i].distributor,
+        ranking: [],
+      };
+
+      let k = 0;
+
+      for (let j = 0; j < performances.length; j++) {
+        if (distributors[i].distributor === performances[j].distributor) {
+          temp.ranking.push({
+            rank: k + 1,
+            title: performances[j].title,
+            date: `${performances[j].startDate.trim()} ~ ${performances[
+              j
+            ].endDate.trim()}`,
+            image: performances[j].imageUrl,
+          });
+
+          k++;
+        }
+        continue;
+      }
+
+      filteredPerformances.push(temp);
+
+      k = 0;
     }
+
+    return filteredPerformances;
   }
 
   async findAllPerformanceRanksByDistributor(
@@ -100,6 +137,9 @@ export class PerformancesService {
     return await this.prisma.performanceRank.findMany({
       where: {
         distributor,
+      },
+      orderBy: {
+        id: 'asc',
       },
     });
   }
@@ -112,6 +152,9 @@ export class PerformancesService {
       where: {
         distributor,
         genre,
+      },
+      orderBy: {
+        id: 'asc',
       },
     });
   }
@@ -127,6 +170,9 @@ export class PerformancesService {
         genre,
         type,
       },
+      orderBy: {
+        id: 'asc',
+      },
     });
   }
 
@@ -135,6 +181,9 @@ export class PerformancesService {
       where: {
         genre,
       },
+      orderBy: {
+        id: 'asc',
+      },
     });
   }
 
@@ -142,6 +191,9 @@ export class PerformancesService {
     return await this.prisma.performanceRank.findMany({
       where: {
         type,
+      },
+      orderBy: {
+        id: 'asc',
       },
     });
   }
@@ -154,6 +206,9 @@ export class PerformancesService {
       where: {
         genre,
         type,
+      },
+      orderBy: {
+        id: 'asc',
       },
     });
   }
