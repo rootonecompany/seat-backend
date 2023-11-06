@@ -228,4 +228,9 @@ export class PerformancesController {
 
     return res.status(HttpStatus.OK).json(performances);
   }
+
+  @Get()
+  test(@Res() res: Response) {
+    return res.status(HttpStatus.OK).json({ result: 'success' });
+  }
 }
